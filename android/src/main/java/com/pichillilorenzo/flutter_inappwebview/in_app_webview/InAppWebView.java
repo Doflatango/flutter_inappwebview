@@ -222,8 +222,11 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     settings.setDisplayZoomControls(options.displayZoomControls);
     settings.setSupportMultipleWindows(options.supportMultipleWindows);
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-      settings.setSafeBrowsingEnabled(options.safeBrowsingEnabled);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      try {
+        settings.setSafeBrowsingEnabled(options.safeBrowsingEnabled);
+      } catch (Exception e) {}
+    }
 
     settings.setMediaPlaybackRequiresUserGesture(options.mediaPlaybackRequiresUserGesture);
 
@@ -689,8 +692,11 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     if (newOptionsMap.get("displayZoomControls") != null && options.displayZoomControls != newOptions.displayZoomControls)
       settings.setDisplayZoomControls(newOptions.displayZoomControls);
 
-    if (newOptionsMap.get("safeBrowsingEnabled") != null && options.safeBrowsingEnabled != newOptions.safeBrowsingEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-      settings.setSafeBrowsingEnabled(newOptions.safeBrowsingEnabled);
+    if (newOptionsMap.get("safeBrowsingEnabled") != null && options.safeBrowsingEnabled != newOptions.safeBrowsingEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      try {
+        settings.setSafeBrowsingEnabled(newOptions.safeBrowsingEnabled);
+      } catch (Exception e) {}
+    }
 
     if (newOptionsMap.get("mediaPlaybackRequiresUserGesture") != null && options.mediaPlaybackRequiresUserGesture != newOptions.mediaPlaybackRequiresUserGesture)
       settings.setMediaPlaybackRequiresUserGesture(newOptions.mediaPlaybackRequiresUserGesture);
