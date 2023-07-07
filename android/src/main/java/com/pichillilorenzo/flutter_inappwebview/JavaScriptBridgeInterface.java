@@ -68,7 +68,7 @@ public class JavaScriptBridgeInterface {
         }
 
         if (handlerName.equals("onPrint") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-          inAppWebView.printCurrentPage();
+          inAppWebView.printCurrentPage(null, null, null);
         } else if (handlerName.equals("callAsyncJavaScript")) {
           try {
             JSONArray arguments = new JSONArray(args);

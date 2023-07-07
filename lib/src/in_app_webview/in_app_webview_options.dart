@@ -6,6 +6,7 @@ import '../content_blocker.dart';
 import '../types.dart';
 import '../in_app_browser/in_app_browser_options.dart';
 import 'webview.dart';
+export 'android/in_app_webview_options.dart' show PrintAttributesMediaSize;
 
 class WebViewOptions {
   Map<String, dynamic> toMap() {

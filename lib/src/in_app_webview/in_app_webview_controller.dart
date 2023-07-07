@@ -1848,8 +1848,16 @@ class InAppWebViewController {
   ///**Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - PrintManager](https://developer.android.com/reference/android/print/PrintManager))
   ///- iOS ([Official API - UIPrintInteractionController](https://developer.apple.com/documentation/uikit/uiprintinteractioncontroller))
-  Future<void> printCurrentPage() async {
+  Future<void> printCurrentPage({
+    String? androidJobName,
+    PrintAttributesMediaSize? androidMediaSize,
+  }) async {
     Map<String, dynamic> args = <String, dynamic>{};
+
+    if (Platform.isAndroid) {
+      if (androidJobName != null) args['jobName'] = androidJobName;
+      if (androidMediaSize != null) args['mediaSize'] = androidMediaSize.toMap();
+    }
     await _channel.invokeMethod('printCurrentPage', args);
   }
 

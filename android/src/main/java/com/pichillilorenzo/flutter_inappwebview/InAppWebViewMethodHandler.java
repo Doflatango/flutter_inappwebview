@@ -326,9 +326,16 @@ public class InAppWebViewMethodHandler implements MethodChannel.MethodCallHandle
         break;
       case "printCurrentPage":
         if (webView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-          webView.printCurrentPage();
+          HashMap<String, Object> mediaSize = (HashMap<String, Object>) call.argument("mediaSize");
+          webView.printCurrentPage((String) call.argument("jobName"), mediaSize,  new ValueCallback<Boolean>() {
+            @Override
+            public void onReceiveValue(Boolean success) {
+              result.success(success);
+            }
+          });
+        } else {
+          result.success(true);
         }
-        result.success(true);
         break;
       case "getContentHeight":
         if (webView instanceof InAppWebView) {

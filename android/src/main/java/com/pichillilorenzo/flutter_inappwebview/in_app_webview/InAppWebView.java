@@ -12,9 +12,12 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.ParcelFileDescriptor;
+import android.print.PageRange;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
@@ -1229,24 +1232,86 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     webSettings.setBuiltInZoomControls(enabled);
   }
 
+  interface PrintDocumentAdapterWrapperCallback {
+    void onFinish();
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+  class PrintDocumentAdapterWrapper extends PrintDocumentAdapter {
+    @NonNull PrintDocumentAdapter delegate;
+    @Nullable PrintDocumentAdapterWrapperCallback callback;
+
+    PrintDocumentAdapterWrapper(@NonNull PrintDocumentAdapter delegate, @Nullable PrintDocumentAdapterWrapperCallback callback) {
+      this.delegate = delegate;
+      this.callback = callback;
+    }
+
+    @Override
+    public void onLayout(PrintAttributes oldAttributes, PrintAttributes newAttributes, CancellationSignal cancellationSignal, LayoutResultCallback callback, Bundle extras) {
+      this.delegate.onLayout(oldAttributes, newAttributes, cancellationSignal, callback, extras);
+    }
+
+    @Override
+    public void onWrite(PageRange[] pages, ParcelFileDescriptor destination, CancellationSignal cancellationSignal, WriteResultCallback callback) {
+      this.delegate.onWrite(pages, destination, cancellationSignal, callback);
+    }
+
+    @Override
+    public void onFinish() {
+      this.delegate.onFinish();
+      if (this.callback != null) this.callback.onFinish();
+    }
+  }
+
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-  public void printCurrentPage() {
+  public void printCurrentPage(@Nullable String jobName, @Nullable Map<String, Object> mediaSizeMap, @Nullable final ValueCallback<Boolean> callback) {
     if (plugin != null && plugin.activity != null) {
       // Get a PrintManager instance
       PrintManager printManager = (PrintManager) plugin.activity.getSystemService(Context.PRINT_SERVICE);
 
       if (printManager != null) {
-        String jobName = getTitle() + " Document";
+        if (jobName == null) {
+          jobName = getTitle() + " Document";
+        }
 
         // Get a printCurrentPage adapter instance
-        PrintDocumentAdapter printAdapter = createPrintDocumentAdapter(jobName);
+        PrintDocumentAdapter printAdapter = new PrintDocumentAdapterWrapper(createPrintDocumentAdapter(jobName), new PrintDocumentAdapterWrapperCallback() {
+          @Override
+          public void onFinish() {
+            if (callback != null) callback.onReceiveValue(true);
+          }
+        });
+        PrintAttributes.Builder builder = new PrintAttributes.Builder();
+
+        if (mediaSizeMap != null) {
+          PrintAttributes.MediaSize mediaSize = null;
+
+          String preset = (String) mediaSizeMap.get("preset");
+          if (preset != null) {
+            mediaSize = Util.getPresetMediaSize(preset);
+          } else {
+            String id = (String) mediaSizeMap.get("id");
+            String label = (String) mediaSizeMap.get("label");
+            Integer widthMils = (Integer) mediaSizeMap.get("widthMils");
+            Integer heightMils = (Integer) mediaSizeMap.get("heightMils");
+            if (id != null && label != null && widthMils != null && heightMils != null) {
+              mediaSize = new PrintAttributes.MediaSize(id, label, widthMils, heightMils);
+            }
+          }
+
+          if (mediaSize != null) {
+            builder.setMediaSize(mediaSize);
+          }
+        }
 
         // Create a printCurrentPage job with name and adapter instance
-        printManager.print(jobName, printAdapter,
-                new PrintAttributes.Builder().build());
+        printManager.print(jobName, printAdapter, builder.build());
       } else {
         Log.e(LOG_TAG, "No PrintManager available");
+        if (callback != null) callback.onReceiveValue(false);
       }
+    } else {
+      if (callback != null) callback.onReceiveValue(true);
     }
   }
 

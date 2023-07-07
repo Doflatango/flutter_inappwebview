@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.print.PrintAttributes;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -16,6 +17,7 @@ import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
@@ -347,6 +349,144 @@ public class Util {
         }
       }
     }
+    return null;
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+  @Nullable
+  public static PrintAttributes.MediaSize getPresetMediaSize(@NonNull String preset) {
+    switch (preset) {
+      case "ISO_A0": return PrintAttributes.MediaSize.ISO_A0;
+      case "ISO_A1": return PrintAttributes.MediaSize.ISO_A1;
+      case "ISO_A2": return PrintAttributes.MediaSize.ISO_A2;
+      case "ISO_A3": return PrintAttributes.MediaSize.ISO_A3;
+      case "ISO_A4": return PrintAttributes.MediaSize.ISO_A4;
+      case "ISO_A5": return PrintAttributes.MediaSize.ISO_A5;
+      case "ISO_A6": return PrintAttributes.MediaSize.ISO_A6;
+      case "ISO_A7": return PrintAttributes.MediaSize.ISO_A7;
+      case "ISO_A8": return PrintAttributes.MediaSize.ISO_A8;
+      case "ISO_A9": return PrintAttributes.MediaSize.ISO_A9;
+      case "ISO_A10": return PrintAttributes.MediaSize.ISO_A10;
+      case "ISO_B0": return PrintAttributes.MediaSize.ISO_B0;
+      case "ISO_B1": return PrintAttributes.MediaSize.ISO_B1;
+      case "ISO_B2": return PrintAttributes.MediaSize.ISO_B2;
+      case "ISO_B3": return PrintAttributes.MediaSize.ISO_B3;
+      case "ISO_B4": return PrintAttributes.MediaSize.ISO_B4;
+      case "ISO_B5": return PrintAttributes.MediaSize.ISO_B5;
+      case "ISO_B6": return PrintAttributes.MediaSize.ISO_B6;
+      case "ISO_B7": return PrintAttributes.MediaSize.ISO_B7;
+      case "ISO_B8": return PrintAttributes.MediaSize.ISO_B8;
+      case "ISO_B9": return PrintAttributes.MediaSize.ISO_B9;
+      case "ISO_B10": return PrintAttributes.MediaSize.ISO_B10;
+      case "ISO_C0": return PrintAttributes.MediaSize.ISO_C0;
+      case "ISO_C1": return PrintAttributes.MediaSize.ISO_C1;
+      case "ISO_C2": return PrintAttributes.MediaSize.ISO_C2;
+      case "ISO_C3": return PrintAttributes.MediaSize.ISO_C3;
+      case "ISO_C4": return PrintAttributes.MediaSize.ISO_C4;
+      case "ISO_C5": return PrintAttributes.MediaSize.ISO_C5;
+      case "ISO_C6": return PrintAttributes.MediaSize.ISO_C6;
+      case "ISO_C7": return PrintAttributes.MediaSize.ISO_C7;
+      case "ISO_C8": return PrintAttributes.MediaSize.ISO_C8;
+      case "ISO_C9": return PrintAttributes.MediaSize.ISO_C9;
+      case "ISO_C10": return PrintAttributes.MediaSize.ISO_C10;
+      case "NA_LETTER": return PrintAttributes.MediaSize.NA_LETTER;
+      case "NA_GOVT_LETTER": return PrintAttributes.MediaSize.NA_GOVT_LETTER;
+      case "NA_LEGAL": return PrintAttributes.MediaSize.NA_LEGAL;
+      case "NA_JUNIOR_LEGAL": return PrintAttributes.MediaSize.NA_JUNIOR_LEGAL;
+      case "NA_LEDGER": return PrintAttributes.MediaSize.NA_LEDGER;
+      case "NA_TABLOID": return PrintAttributes.MediaSize.NA_TABLOID;
+      case "NA_INDEX_3X5": return PrintAttributes.MediaSize.NA_INDEX_3X5;
+      case "NA_INDEX_4X6": return PrintAttributes.MediaSize.NA_INDEX_4X6;
+      case "NA_INDEX_5X8": return PrintAttributes.MediaSize.NA_INDEX_5X8;
+      case "NA_MONARCH": return PrintAttributes.MediaSize.NA_MONARCH;
+      case "NA_QUARTO": return PrintAttributes.MediaSize.NA_QUARTO;
+      case "NA_FOOLSCAP": return PrintAttributes.MediaSize.NA_FOOLSCAP;
+      case "ANSI_C":
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          return PrintAttributes.MediaSize.ANSI_C;
+        }
+      case "ANSI_D":
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          return PrintAttributes.MediaSize.ANSI_D;
+        }
+      case "ANSI_E":
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          return PrintAttributes.MediaSize.ANSI_E;
+        }
+      case "ANSI_F":
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          return PrintAttributes.MediaSize.ANSI_F;
+        }
+      case "NA_ARCH_A":
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          return PrintAttributes.MediaSize.NA_ARCH_A;
+        }
+      case "NA_ARCH_B":
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          return PrintAttributes.MediaSize.NA_ARCH_B;
+        }
+      case "NA_ARCH_C":
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          return PrintAttributes.MediaSize.NA_ARCH_C;
+        }
+      case "NA_ARCH_D":
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          return PrintAttributes.MediaSize.NA_ARCH_D;
+        }
+      case "NA_ARCH_E":
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          return PrintAttributes.MediaSize.NA_ARCH_E;
+        }
+      case "NA_ARCH_E1":
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          return PrintAttributes.MediaSize.NA_ARCH_E1;
+        }
+      case "NA_SUPER_B":
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          return PrintAttributes.MediaSize.NA_SUPER_B;
+        }
+      case "ROC_8K": return PrintAttributes.MediaSize.ROC_8K;
+      case "ROC_16K": return PrintAttributes.MediaSize.ROC_16K;
+      case "PRC_1": return PrintAttributes.MediaSize.PRC_1;
+      case "PRC_2": return PrintAttributes.MediaSize.PRC_2;
+      case "PRC_3": return PrintAttributes.MediaSize.PRC_3;
+      case "PRC_4": return PrintAttributes.MediaSize.PRC_4;
+      case "PRC_5": return PrintAttributes.MediaSize.PRC_5;
+      case "PRC_6": return PrintAttributes.MediaSize.PRC_6;
+      case "PRC_7": return PrintAttributes.MediaSize.PRC_7;
+      case "PRC_8": return PrintAttributes.MediaSize.PRC_8;
+      case "PRC_9": return PrintAttributes.MediaSize.PRC_9;
+      case "PRC_10": return PrintAttributes.MediaSize.PRC_10;
+      case "PRC_16K": return PrintAttributes.MediaSize.PRC_16K;
+      case "OM_PA_KAI": return PrintAttributes.MediaSize.OM_PA_KAI;
+      case "OM_DAI_PA_KAI": return PrintAttributes.MediaSize.OM_DAI_PA_KAI;
+      case "OM_JUURO_KU_KAI": return PrintAttributes.MediaSize.OM_JUURO_KU_KAI;
+      case "JIS_B10": return PrintAttributes.MediaSize.JIS_B10;
+      case "JIS_B9": return PrintAttributes.MediaSize.JIS_B9;
+      case "JIS_B8": return PrintAttributes.MediaSize.JIS_B8;
+      case "JIS_B7": return PrintAttributes.MediaSize.JIS_B7;
+      case "JIS_B6": return PrintAttributes.MediaSize.JIS_B6;
+      case "JIS_B5": return PrintAttributes.MediaSize.JIS_B5;
+      case "JIS_B4": return PrintAttributes.MediaSize.JIS_B4;
+      case "JIS_B3": return PrintAttributes.MediaSize.JIS_B3;
+      case "JIS_B2": return PrintAttributes.MediaSize.JIS_B2;
+      case "JIS_B1": return PrintAttributes.MediaSize.JIS_B1;
+      case "JIS_B0": return PrintAttributes.MediaSize.JIS_B0;
+      case "JIS_EXEC": return PrintAttributes.MediaSize.JIS_EXEC;
+      case "JPN_CHOU4": return PrintAttributes.MediaSize.JPN_CHOU4;
+      case "JPN_CHOU3": return PrintAttributes.MediaSize.JPN_CHOU3;
+      case "JPN_CHOU2": return PrintAttributes.MediaSize.JPN_CHOU2;
+      case "JPN_HAGAKI": return PrintAttributes.MediaSize.JPN_HAGAKI;
+      case "JPN_OUFUKU": return PrintAttributes.MediaSize.JPN_OUFUKU;
+      case "JPN_KAHU": return PrintAttributes.MediaSize.JPN_KAHU;
+      case "JPN_KAKU2": return PrintAttributes.MediaSize.JPN_KAKU2;
+      case "JPN_YOU4": return PrintAttributes.MediaSize.JPN_YOU4;
+      case "JPN_OE_PHOTO_L":
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          return PrintAttributes.MediaSize.JPN_OE_PHOTO_L;
+        }
+    }
+
     return null;
   }
 }

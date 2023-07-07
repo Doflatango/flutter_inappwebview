@@ -8,6 +8,8 @@ import android.webkit.ValueCallback;
 import android.webkit.WebMessage;
 import android.webkit.WebView;
 
+import androidx.annotation.Nullable;
+
 import com.pichillilorenzo.flutter_inappwebview.InAppWebViewFlutterPlugin;
 import com.pichillilorenzo.flutter_inappwebview.in_app_browser.InAppBrowserDelegate;
 import com.pichillilorenzo.flutter_inappwebview.in_app_webview.InAppWebViewOptions;
@@ -56,7 +58,7 @@ public interface InAppWebViewInterface {
   void onResume();
   void pauseTimers();
   void resumeTimers();
-  void printCurrentPage();
+  void printCurrentPage(String jonName, Map<String, Object> mediaSizeMap, @Nullable ValueCallback<Boolean> callback);
   int getContentHeight();
   void getContentHeight(ValueCallback<Integer> callback);
   void zoomBy(float zoomFactor);
