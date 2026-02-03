@@ -1,20 +1,22 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 import 'dart:ui';
 
 import '../find_interaction/platform_find_interaction_controller.dart';
 import '../pull_to_refresh/platform_pull_to_refresh_controller.dart';
-
 import '../context_menu/context_menu.dart';
 import '../types/main.dart';
-
 import '../web_uri.dart';
 import 'in_app_webview_settings.dart';
 import 'platform_inappwebview_controller.dart';
 import '../print_job/main.dart';
+import 'platform_inappwebview_widget.dart';
+import 'platform_headless_in_app_webview.dart';
 
 ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams}
-///Class that represents a WebView. Used by [InAppWebView], [HeadlessInAppWebView] and the WebView of [PlatformInAppBrowser].
+///Class that represents a WebView. Used by [PlatformInAppWebViewWidget],
+///[PlatformHeadlessInAppWebView] and the WebView of [PlatformInAppBrowser].
 ///{@endtemplate}
 class PlatformWebViewCreationParams<T> {
   final T Function(PlatformInAppWebViewController controller)?
@@ -161,7 +163,7 @@ class PlatformWebViewCreationParams<T> {
   ///- iOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455641-webview))
   ///- MacOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455641-webview))
   ///{@endtemplate}
-  final Future<NavigationActionPolicy?> Function(
+  final FutureOr<NavigationActionPolicy?> Function(
           T controller, NavigationAction navigationAction)?
       shouldOverrideUrlLoading;
 
@@ -196,11 +198,16 @@ class PlatformWebViewCreationParams<T> {
   ///{@endtemplate}
   final void Function(T controller, int x, int y)? onScrollChanged;
 
-  ///Use [onDownloadStartRequest] instead
-  @Deprecated('Use onDownloadStartRequest instead')
+  ///Use [onDownloadStarting] instead
+  @Deprecated('Use onDownloadStarting instead')
   final void Function(T controller, Uri url)? onDownloadStart;
 
-  ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onDownloadStartRequest}
+  ///Use [onDownloadStarting] instead
+  @Deprecated('Use onDownloadStarting instead')
+  final void Function(T controller, DownloadStartRequest downloadStartRequest)?
+      onDownloadStartRequest;
+
+  ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onDownloadStarting}
   ///Event fired when `WebView` recognizes a downloadable file.
   ///To download the file, you can use the [flutter_downloader](https://pub.dev/packages/flutter_downloader) plugin.
   ///
@@ -212,13 +219,15 @@ class PlatformWebViewCreationParams<T> {
   ///- Android native WebView ([Official API - WebView.setDownloadListener](https://developer.android.com/reference/android/webkit/WebView#setDownloadListener(android.webkit.DownloadListener)))
   ///- iOS
   ///- MacOS
+  ///- Windows ([Official API - ICoreWebView2_4.add_DownloadStarting](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2_4?view=webview2-1.0.2849.39#add_downloadstarting))
   ///{@endtemplate}
-  final void Function(T controller, DownloadStartRequest downloadStartRequest)?
-      onDownloadStartRequest;
+  final FutureOr<DownloadStartResponse?> Function(
+          T controller, DownloadStartRequest downloadStartRequest)?
+      onDownloadStarting;
 
   ///Use [onLoadResourceWithCustomScheme] instead.
   @Deprecated('Use onLoadResourceWithCustomScheme instead')
-  final Future<CustomSchemeResponse?> Function(T controller, Uri url)?
+  final FutureOr<CustomSchemeResponse?> Function(T controller, Uri url)?
       onLoadResourceCustomScheme;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onLoadResourceWithCustomScheme}
@@ -231,7 +240,7 @@ class PlatformWebViewCreationParams<T> {
   ///- MacOS ([Official API - WKURLSchemeHandler](https://developer.apple.com/documentation/webkit/wkurlschemehandler))
   ///- Windows
   ///{@endtemplate}
-  final Future<CustomSchemeResponse?> Function(
+  final FutureOr<CustomSchemeResponse?> Function(
       T controller, WebResourceRequest request)? onLoadResourceWithCustomScheme;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onCreateWindow}
@@ -274,7 +283,7 @@ class PlatformWebViewCreationParams<T> {
   ///- Web
   ///- Windows ([Official API - ICoreWebView2.add_NewWindowRequested](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2?view=webview2-1.0.2210.55#add_newwindowrequested))
   ///{@endtemplate}
-  final Future<bool?> Function(
+  final FutureOr<bool?> Function(
       T controller, CreateWindowAction createWindowAction)? onCreateWindow;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onCloseWindow}
@@ -328,7 +337,7 @@ class PlatformWebViewCreationParams<T> {
   ///- iOS ([Official API - WKUIDelegate.webView](https://developer.apple.com/documentation/webkit/wkuidelegate/1537406-webview))
   ///- MacOS ([Official API - WKUIDelegate.webView](https://developer.apple.com/documentation/webkit/wkuidelegate/1537406-webview))
   ///{@endtemplate}
-  final Future<JsAlertResponse?> Function(
+  final FutureOr<JsAlertResponse?> Function(
       T controller, JsAlertRequest jsAlertRequest)? onJsAlert;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onJsConfirm}
@@ -342,7 +351,7 @@ class PlatformWebViewCreationParams<T> {
   ///- iOS ([Official API - WKUIDelegate.webView](https://developer.apple.com/documentation/webkit/wkuidelegate/1536489-webview))
   ///- MacOS ([Official API - WKUIDelegate.webView](https://developer.apple.com/documentation/webkit/wkuidelegate/1536489-webview))
   ///{@endtemplate}
-  final Future<JsConfirmResponse?> Function(
+  final FutureOr<JsConfirmResponse?> Function(
       T controller, JsConfirmRequest jsConfirmRequest)? onJsConfirm;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onJsPrompt}
@@ -356,7 +365,7 @@ class PlatformWebViewCreationParams<T> {
   ///- iOS ([Official API - WKUIDelegate.webView](https://developer.apple.com/documentation/webkit/wkuidelegate/1538086-webview))
   ///- MacOS ([Official API - WKUIDelegate.webView](https://developer.apple.com/documentation/webkit/wkuidelegate/1538086-webview))
   ///{@endtemplate}
-  final Future<JsPromptResponse?> Function(
+  final FutureOr<JsPromptResponse?> Function(
       T controller, JsPromptRequest jsPromptRequest)? onJsPrompt;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onReceivedHttpAuthRequest}
@@ -368,8 +377,9 @@ class PlatformWebViewCreationParams<T> {
   ///- Android native WebView ([Official API - WebViewClient.onReceivedHttpAuthRequest](https://developer.android.com/reference/android/webkit/WebViewClient#onReceivedHttpAuthRequest(android.webkit.WebView,%20android.webkit.HttpAuthHandler,%20java.lang.String,%20java.lang.String)))
   ///- iOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455638-webview))
   ///- MacOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455638-webview))
+  ///- Windows ([Official API - ICoreWebView2_10.add_BasicAuthenticationRequested](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2_10?view=webview2-1.0.2849.39#add_basicauthenticationrequested))
   ///{@endtemplate}
-  final Future<HttpAuthResponse?> Function(
+  final FutureOr<HttpAuthResponse?> Function(
           T controller, HttpAuthenticationChallenge challenge)?
       onReceivedHttpAuthRequest;
 
@@ -379,12 +389,17 @@ class PlatformWebViewCreationParams<T> {
   ///
   ///[challenge] contains data about host, port, protocol, realm, etc. as specified in the [ServerTrustChallenge].
   ///
+  ///**NOTE for iOS and macOS**: to override the certificate verification logic, you have to provide ATS (App Transport Security) exceptions in your iOS/macOS `Info.plist`.
+  ///See `NSAppTransportSecurity` in the [Information Property List Key Reference](https://developer.apple.com/library/content/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40009251-SW1)
+  ///for details.
+  ///
   ///**Officially Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebViewClient.onReceivedSslError](https://developer.android.com/reference/android/webkit/WebViewClient#onReceivedSslError(android.webkit.WebView,%20android.webkit.SslErrorHandler,%20android.net.http.SslError)))
   ///- iOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455638-webview))
   ///- MacOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455638-webview))
+  ///- Windows ([Official API - ICoreWebView2_14.add_ServerCertificateErrorDetected](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2_14?view=webview2-1.0.2792.45#add_servercertificateerrordetected))
   ///{@endtemplate}
-  final Future<ServerTrustAuthResponse?> Function(
+  final FutureOr<ServerTrustAuthResponse?> Function(
           T controller, ServerTrustChallenge challenge)?
       onReceivedServerTrustAuthRequest;
 
@@ -400,8 +415,9 @@ class PlatformWebViewCreationParams<T> {
   ///- Android native WebView ([Official API - WebViewClient.onReceivedClientCertRequest](https://developer.android.com/reference/android/webkit/WebViewClient#onReceivedClientCertRequest(android.webkit.WebView,%20android.webkit.ClientCertRequest)))
   ///- iOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455638-webview))
   ///- MacOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455638-webview))
+  ///- Windows ([Official API - ICoreWebView2_5.add_ClientCertificateRequested](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2_5?view=webview2-1.0.2849.39#add_clientcertificaterequested))
   ///{@endtemplate}
-  final Future<ClientCertResponse?> Function(
+  final FutureOr<ClientCertResponse?> Function(
       T controller, ClientCertChallenge challenge)? onReceivedClientCertRequest;
 
   ///Use [FindInteractionController.onFindResultReceived] instead.
@@ -429,7 +445,7 @@ class PlatformWebViewCreationParams<T> {
   ///- iOS
   ///- MacOS
   ///{@endtemplate}
-  final Future<AjaxRequest?> Function(T controller, AjaxRequest ajaxRequest)?
+  final FutureOr<AjaxRequest?> Function(T controller, AjaxRequest ajaxRequest)?
       shouldInterceptAjaxRequest;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onAjaxReadyStateChange}
@@ -449,7 +465,7 @@ class PlatformWebViewCreationParams<T> {
   ///- iOS
   ///- MacOS
   ///{@endtemplate}
-  final Future<AjaxRequestAction?> Function(
+  final FutureOr<AjaxRequestAction?> Function(
       T controller, AjaxRequest ajaxRequest)? onAjaxReadyStateChange;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onAjaxProgress}
@@ -469,7 +485,7 @@ class PlatformWebViewCreationParams<T> {
   ///- iOS
   ///- MacOS
   ///{@endtemplate}
-  final Future<AjaxRequestAction?> Function(
+  final FutureOr<AjaxRequestAction?> Function(
       T controller, AjaxRequest ajaxRequest)? onAjaxProgress;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.shouldInterceptFetchRequest}
@@ -489,8 +505,8 @@ class PlatformWebViewCreationParams<T> {
   ///- iOS
   ///- MacOS
   ///{@endtemplate}
-  final Future<FetchRequest?> Function(T controller, FetchRequest fetchRequest)?
-      shouldInterceptFetchRequest;
+  final FutureOr<FetchRequest?> Function(
+      T controller, FetchRequest fetchRequest)? shouldInterceptFetchRequest;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onUpdateVisitedHistory}
   ///Event fired when the host application updates its visited links database.
@@ -536,7 +552,7 @@ class PlatformWebViewCreationParams<T> {
   ///- MacOS
   ///- Web
   ///{@endtemplate}
-  final Future<bool?> Function(T controller, WebUri? url,
+  final FutureOr<bool?> Function(T controller, WebUri? url,
       PlatformPrintJobController? printJobController)? onPrintRequest;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onLongPressHitTestResult}
@@ -639,13 +655,14 @@ class PlatformWebViewCreationParams<T> {
   ///- Android native WebView ([Official API - WebViewClient.onScaleChanged](https://developer.android.com/reference/android/webkit/WebViewClient#onScaleChanged(android.webkit.WebView,%20float,%20float)))
   ///- iOS ([Official API - UIScrollViewDelegate.scrollViewDidZoom](https://developer.apple.com/documentation/uikit/uiscrollviewdelegate/1619409-scrollviewdidzoom))
   ///- Web
+  ///- Windows ([Official API - ICoreWebView2Controller.add_ZoomFactorChanged](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.2849.39#add_zoomfactorchanged))
   ///{@endtemplate}
   final void Function(T controller, double oldScale, double newScale)?
       onZoomScaleChanged;
 
   ///Use [onSafeBrowsingHit] instead.
   @Deprecated("Use onSafeBrowsingHit instead")
-  final Future<SafeBrowsingResponse?> Function(
+  final FutureOr<SafeBrowsingResponse?> Function(
           T controller, Uri url, SafeBrowsingThreat? threatType)?
       androidOnSafeBrowsingHit;
 
@@ -662,13 +679,13 @@ class PlatformWebViewCreationParams<T> {
   ///**Officially Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebViewClient.onSafeBrowsingHit](https://developer.android.com/reference/android/webkit/WebViewClient#onSafeBrowsingHit(android.webkit.WebView,%20android.webkit.WebResourceRequest,%20int,%20android.webkit.SafeBrowsingResponse)))
   ///{@endtemplate}
-  final Future<SafeBrowsingResponse?> Function(
+  final FutureOr<SafeBrowsingResponse?> Function(
           T controller, WebUri url, SafeBrowsingThreat? threatType)?
       onSafeBrowsingHit;
 
   ///Use [onPermissionRequest] instead.
   @Deprecated("Use onPermissionRequest instead")
-  final Future<PermissionRequestResponse?> Function(
+  final FutureOr<PermissionRequestResponse?> Function(
           T controller, String origin, List<String> resources)?
       androidOnPermissionRequest;
 
@@ -690,12 +707,12 @@ class PlatformWebViewCreationParams<T> {
   ///- MacOS
   ///- Windows ([Official API - ICoreWebView2.add_PermissionRequested](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/iwebview2webview?view=webview2-0.8.355#add_permissionrequested))
   ///{@endtemplate}
-  final Future<PermissionResponse?> Function(
+  final FutureOr<PermissionResponse?> Function(
       T controller, PermissionRequest permissionRequest)? onPermissionRequest;
 
   ///Use [onGeolocationPermissionsShowPrompt] instead.
   @Deprecated("Use onGeolocationPermissionsShowPrompt instead")
-  final Future<GeolocationPermissionShowPromptResponse?> Function(
+  final FutureOr<GeolocationPermissionShowPromptResponse?> Function(
       T controller, String origin)? androidOnGeolocationPermissionsShowPrompt;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onGeolocationPermissionsShowPrompt}
@@ -708,7 +725,7 @@ class PlatformWebViewCreationParams<T> {
   ///**Officially Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebChromeClient.onGeolocationPermissionsShowPrompt](https://developer.android.com/reference/android/webkit/WebChromeClient#onGeolocationPermissionsShowPrompt(java.lang.String,%20android.webkit.GeolocationPermissions.Callback)))
   ///{@endtemplate}
-  final Future<GeolocationPermissionShowPromptResponse?> Function(
+  final FutureOr<GeolocationPermissionShowPromptResponse?> Function(
       T controller, String origin)? onGeolocationPermissionsShowPrompt;
 
   ///Use [onGeolocationPermissionsHidePrompt] instead.
@@ -726,7 +743,7 @@ class PlatformWebViewCreationParams<T> {
 
   ///Use [shouldInterceptRequest] instead.
   @Deprecated("Use shouldInterceptRequest instead")
-  final Future<WebResourceResponse?> Function(
+  final FutureOr<WebResourceResponse?> Function(
       T controller, WebResourceRequest request)? androidShouldInterceptRequest;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.shouldInterceptRequest}
@@ -748,12 +765,12 @@ class PlatformWebViewCreationParams<T> {
   ///- Android native WebView ([Official API - WebViewClient.shouldInterceptRequest](https://developer.android.com/reference/android/webkit/WebViewClient#shouldInterceptRequest(android.webkit.WebView,%20android.webkit.WebResourceRequest)))
   ///- Windows ([ICoreWebView2.add_WebResourceRequested](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2?view=webview2-1.0.2478.35#add_webresourcerequested))
   ///{@endtemplate}
-  final Future<WebResourceResponse?> Function(
+  final FutureOr<WebResourceResponse?> Function(
       T controller, WebResourceRequest request)? shouldInterceptRequest;
 
   ///Use [onRenderProcessUnresponsive] instead.
   @Deprecated("Use onRenderProcessUnresponsive instead")
-  final Future<WebViewRenderProcessAction?> Function(T controller, Uri? url)?
+  final FutureOr<WebViewRenderProcessAction?> Function(T controller, Uri? url)?
       androidOnRenderProcessUnresponsive;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onRenderProcessUnresponsive}
@@ -776,13 +793,14 @@ class PlatformWebViewCreationParams<T> {
   ///
   ///**Officially Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebViewRenderProcessClient.onRenderProcessUnresponsive](https://developer.android.com/reference/android/webkit/WebViewRenderProcessClient#onRenderProcessUnresponsive(android.webkit.WebView,%20android.webkit.WebViewRenderProcess)))
+  ///- Windows ([Official API - ICoreWebView2.add_ProcessFailed](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2?view=webview2-1.0.2849.39#add_processfailed))
   ///{@endtemplate}
-  final Future<WebViewRenderProcessAction?> Function(T controller, WebUri? url)?
-      onRenderProcessUnresponsive;
+  final FutureOr<WebViewRenderProcessAction?> Function(
+      T controller, WebUri? url)? onRenderProcessUnresponsive;
 
   ///Use [onRenderProcessResponsive] instead.
   @Deprecated("Use onRenderProcessResponsive instead")
-  final Future<WebViewRenderProcessAction?> Function(T controller, Uri? url)?
+  final FutureOr<WebViewRenderProcessAction?> Function(T controller, Uri? url)?
       androidOnRenderProcessResponsive;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onRenderProcessResponsive}
@@ -799,8 +817,8 @@ class PlatformWebViewCreationParams<T> {
   ///**Officially Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebViewRenderProcessClient.onRenderProcessResponsive](https://developer.android.com/reference/android/webkit/WebViewRenderProcessClient#onRenderProcessResponsive(android.webkit.WebView,%20android.webkit.WebViewRenderProcess)))
   ///{@endtemplate}
-  final Future<WebViewRenderProcessAction?> Function(T controller, WebUri? url)?
-      onRenderProcessResponsive;
+  final FutureOr<WebViewRenderProcessAction?> Function(
+      T controller, WebUri? url)? onRenderProcessResponsive;
 
   ///Use [onRenderProcessGone] instead.
   @Deprecated("Use onRenderProcessGone instead")
@@ -812,19 +830,23 @@ class PlatformWebViewCreationParams<T> {
   ///The application's implementation of this callback should only attempt to clean up the WebView.
   ///The WebView should be removed from the view hierarchy, all references to it should be cleaned up.
   ///
+  ///To cause an render process crash for test purpose, the application can call load url `"chrome://crash"` on the WebView.
+  ///Note that multiple WebView instances may be affected if they share a render process, not just the specific WebView which loaded `"chrome://crash"`.
+  ///
   ///[detail] the reason why it exited.
   ///
   ///**NOTE**: available only on Android 26+.
   ///
   ///**Officially Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebViewClient.onRenderProcessGone](https://developer.android.com/reference/android/webkit/WebViewClient#onRenderProcessGone(android.webkit.WebView,%20android.webkit.RenderProcessGoneDetail)))
+  ///- Windows ([Official API - ICoreWebView2.add_ProcessFailed](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2?view=webview2-1.0.2849.39#add_processfailed))
   ///{@endtemplate}
   final void Function(T controller, RenderProcessGoneDetail detail)?
       onRenderProcessGone;
 
   ///Use [onFormResubmission] instead.
   @Deprecated('Use onFormResubmission instead')
-  final Future<FormResubmissionAction?> Function(T controller, Uri? url)?
+  final FutureOr<FormResubmissionAction?> Function(T controller, Uri? url)?
       androidOnFormResubmission;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onFormResubmission}
@@ -833,7 +855,7 @@ class PlatformWebViewCreationParams<T> {
   ///**Officially Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebViewClient.onFormResubmission](https://developer.android.com/reference/android/webkit/WebViewClient#onFormResubmission(android.webkit.WebView,%20android.os.Message,%20android.os.Message)))
   ///{@endtemplate}
-  final Future<FormResubmissionAction?> Function(T controller, WebUri? url)?
+  final FutureOr<FormResubmissionAction?> Function(T controller, WebUri? url)?
       onFormResubmission;
 
   ///Use [onZoomScaleChanged] instead.
@@ -875,7 +897,7 @@ class PlatformWebViewCreationParams<T> {
 
   ///Use [onJsBeforeUnload] instead.
   @Deprecated('Use onJsBeforeUnload instead')
-  final Future<JsBeforeUnloadResponse?> Function(
+  final FutureOr<JsBeforeUnloadResponse?> Function(
           T controller, JsBeforeUnloadRequest jsBeforeUnloadRequest)?
       androidOnJsBeforeUnload;
 
@@ -893,7 +915,7 @@ class PlatformWebViewCreationParams<T> {
   ///**Officially Supported Platforms/Implementations**:
   ///- Android native WebView ([Official API - WebChromeClient.onJsBeforeUnload](https://developer.android.com/reference/android/webkit/WebChromeClient#onJsBeforeUnload(android.webkit.WebView,%20java.lang.String,%20java.lang.String,%20android.webkit.JsResult)))
   ///{@endtemplate}
-  final Future<JsBeforeUnloadResponse?> Function(
+  final FutureOr<JsBeforeUnloadResponse?> Function(
           T controller, JsBeforeUnloadRequest jsBeforeUnloadRequest)?
       onJsBeforeUnload;
 
@@ -943,10 +965,12 @@ class PlatformWebViewCreationParams<T> {
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onWebContentProcessDidTerminate}
   ///Invoked when the web view's web content process is terminated.
+  ///Reloading the page will start a new render process if needed.
   ///
   ///**Officially Supported Platforms/Implementations**:
   ///- iOS ([Official API - WKNavigationDelegate.webViewWebContentProcessDidTerminate](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455639-webviewwebcontentprocessdidtermi))
   ///- MacOS ([Official API - WKNavigationDelegate.webViewWebContentProcessDidTerminate](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455639-webviewwebcontentprocessdidtermi))
+  ///- Windows ([Official API - ICoreWebView2.add_ProcessFailed](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2?view=webview2-1.0.2849.39#add_processfailed))
   ///{@endtemplate}
   final void Function(T controller)? onWebContentProcessDidTerminate;
 
@@ -967,7 +991,7 @@ class PlatformWebViewCreationParams<T> {
 
   ///Use [onNavigationResponse] instead.
   @Deprecated('Use onNavigationResponse instead')
-  final Future<IOSNavigationResponseAction?> Function(
+  final FutureOr<IOSNavigationResponseAction?> Function(
           T controller, IOSWKNavigationResponse navigationResponse)?
       iosOnNavigationResponse;
 
@@ -982,13 +1006,13 @@ class PlatformWebViewCreationParams<T> {
   ///- iOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455643-webview))
   ///- MacOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/1455643-webview))
   ///{@endtemplate}
-  final Future<NavigationResponseAction?> Function(
+  final FutureOr<NavigationResponseAction?> Function(
           T controller, NavigationResponse navigationResponse)?
       onNavigationResponse;
 
   ///Use [shouldAllowDeprecatedTLS] instead.
   @Deprecated('Use shouldAllowDeprecatedTLS instead')
-  final Future<IOSShouldAllowDeprecatedTLSAction?> Function(
+  final FutureOr<IOSShouldAllowDeprecatedTLSAction?> Function(
           T controller, URLAuthenticationChallenge challenge)?
       iosShouldAllowDeprecatedTLS;
 
@@ -1005,7 +1029,7 @@ class PlatformWebViewCreationParams<T> {
   ///- iOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/3601237-webview))
   ///- MacOS ([Official API - WKNavigationDelegate.webView](https://developer.apple.com/documentation/webkit/wknavigationdelegate/3601237-webview))
   ///{@endtemplate}
-  final Future<ShouldAllowDeprecatedTLSAction?> Function(
+  final FutureOr<ShouldAllowDeprecatedTLSAction?> Function(
           T controller, URLAuthenticationChallenge challenge)?
       shouldAllowDeprecatedTLS;
 
@@ -1020,7 +1044,7 @@ class PlatformWebViewCreationParams<T> {
   ///- iOS
   ///- MacOS
   ///{@endtemplate}
-  final Future<void> Function(
+  final FutureOr<void> Function(
     T controller,
     MediaCaptureState? oldState,
     MediaCaptureState? newState,
@@ -1037,7 +1061,7 @@ class PlatformWebViewCreationParams<T> {
   ///- iOS
   ///- MacOS
   ///{@endtemplate}
-  final Future<void> Function(
+  final FutureOr<void> Function(
     T controller,
     MediaCaptureState? oldState,
     MediaCaptureState? newState,
@@ -1055,6 +1079,40 @@ class PlatformWebViewCreationParams<T> {
   ///{@endtemplate}
   final void Function(T controller, Size oldContentSize, Size newContentSize)?
       onContentSizeChanged;
+
+  ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onProcessFailed}
+  ///Invoked when any of the processes in the WebView Process Group encounters one of the following conditions:
+  ///- Unexpected exit: The process indicated by the event args has exited unexpectedly (usually due to a crash).
+  ///The failure might or might not be recoverable and some failures are auto-recoverable.
+  ///- Unresponsiveness: The process indicated by the event args has become unresponsive to user input.
+  ///This is only reported for renderer processes, and will run every few seconds until the process becomes responsive again.
+  ///
+  ///**Officially Supported Platforms/Implementations**:
+  ///- Windows ([Official API - ICoreWebView2.add_ProcessFailed](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2?view=webview2-1.0.2849.39#add_processfailed))
+  ///{@endtemplate}
+  final void Function(T controller, ProcessFailedDetail detail)?
+      onProcessFailed;
+
+  ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.onAcceleratorKeyPressed}
+  ///This event runs when an accelerator key or key combo is pressed or
+  ///released while the WebView is focused.
+  ///To listen this event, [InAppWebViewSettings.handleAcceleratorKeyPressed] must be `true`.
+  ///
+  ///A key is considered an accelerator if either of the following conditions are `true`:
+  ///- `Ctrl` or `Alt` is currently being held.
+  ///- The pressed key does not map to a character.
+  ///
+  ///A few specific keys are never considered accelerators, such as `Shift`.
+  ///The `Escape` key is always considered an accelerator.
+  ///
+  ///Auto-repeated key events caused by holding the key down also triggers this event.
+  ///Filter out the auto-repeated key events by verifying the [AcceleratorKeyPressedDetail.physicalKeyStatus] property.
+  ///
+  ///**Officially Supported Platforms/Implementations**:
+  ///- Windows ([Official API - ICoreWebView2Controller.add_AcceleratorKeyPressed](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controller?view=webview2-1.0.2849.39#add_acceleratorkeypressed))
+  ///{@endtemplate}
+  final void Function(T controller, AcceleratorKeyPressedDetail detail)?
+      onAcceleratorKeyPressed;
 
   ///{@template flutter_inappwebview_platform_interface.PlatformWebViewCreationParams.initialUrlRequest}
   ///Initial url request that will be loaded.
@@ -1172,8 +1230,9 @@ class PlatformWebViewCreationParams<T> {
       this.shouldOverrideUrlLoading,
       this.onLoadResource,
       this.onScrollChanged,
-      @Deprecated('Use onDownloadStartRequest instead') this.onDownloadStart,
-      this.onDownloadStartRequest,
+      @Deprecated('Use onDownloadStarting instead') this.onDownloadStart,
+      @Deprecated('Use onDownloadStarting instead') this.onDownloadStartRequest,
+      this.onDownloadStarting,
       @Deprecated('Use onLoadResourceWithCustomScheme instead')
       this.onLoadResourceCustomScheme,
       this.onLoadResourceWithCustomScheme,
@@ -1259,6 +1318,8 @@ class PlatformWebViewCreationParams<T> {
       this.onCameraCaptureStateChanged,
       this.onMicrophoneCaptureStateChanged,
       this.onContentSizeChanged,
+      this.onProcessFailed,
+      this.onAcceleratorKeyPressed,
       this.initialUrlRequest,
       this.initialFile,
       this.initialData,

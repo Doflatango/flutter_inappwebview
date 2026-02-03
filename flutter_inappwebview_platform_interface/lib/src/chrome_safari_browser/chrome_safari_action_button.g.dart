@@ -46,7 +46,8 @@ class ChromeSafariBrowserActionButton {
       this.shouldTint = false});
 
   ///Gets a possible [ChromeSafariBrowserActionButton] instance from a [Map] value.
-  static ChromeSafariBrowserActionButton? fromMap(Map<String, dynamic>? map) {
+  static ChromeSafariBrowserActionButton? fromMap(Map<String, dynamic>? map,
+      {EnumMethod? enumMethod}) {
     if (map == null) {
       return null;
     }
@@ -55,12 +56,14 @@ class ChromeSafariBrowserActionButton {
       icon: Uint8List.fromList(map['icon'].cast<int>()),
       id: map['id'],
     );
-    instance.shouldTint = map['shouldTint'];
+    if (map['shouldTint'] != null) {
+      instance.shouldTint = map['shouldTint'];
+    }
     return instance;
   }
 
   ///Converts instance to a map.
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap({EnumMethod? enumMethod}) {
     return {
       "description": description,
       "icon": icon,
